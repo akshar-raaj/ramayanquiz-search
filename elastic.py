@@ -5,7 +5,7 @@ Currently we are using the `requests` library. Later we will shift to elasticsea
 import requests
 import json
 
-from constants import ELASTIC_HOST
+from constants import ELASTIC_HOST, QUESTION_INDEX
 
 
 elastic_connection = None
@@ -38,7 +38,17 @@ def create_index(index_name):
         return False, response_json['error']['reason']
 
 
-def insert_document(index_name, document):
+def delete_index(index_name):
+    url = f'{ELASTIC_HOST}/{index_name}'
+    response = requests.delete(url)
+    if response.ok:
+        return True, ''
+    else:
+        response_json = response.json()
+        return False, response_json['error']['reason']
+
+
+def insert_document(document, index_name=QUESTION_INDEX):
     url = f'{ELASTIC_HOST}/{index_name}/_doc'
     response = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(document))
     response_json = response.json()

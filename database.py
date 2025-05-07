@@ -18,7 +18,10 @@ def get_database_connection(force=False):
 
 def select_question(question_id: int):
     query = "select id, question, tags from questions where id=%s"
+    # Don't need context manager for connection as no insert happening.
+    # Hence, don't have to worry about commit or rollback.
     connection = get_database_connection()
+    # Client side cursor, hence don't need to worry about context manager or closing the cursor.
     cursor = connection.cursor()
     cursor.execute(query, (question_id,))
     row = cursor.fetchone()

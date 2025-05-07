@@ -17,10 +17,17 @@ logger = logging.getLogger(__name__)
 
 def on_message_callback(ch, method, properties, body):
     logger.info("Message received")
-    body = body.decode('utf-8')
-    logger.info(f"Decoded message: {body}")
-    body = json.loads(body)
-    question_id = body['question_id']
+    try:
+        body = body.decode('utf-8')
+        logger.info(f"Decoded message: {body}")
+        body = json.loads(body)
+        question_id = body['question_id']
+    except Exception as exc:
+        logger.error(f"Exception while decoding: {body}. Exception is {exc}")
+        # Need to acknowledge this even in case of exceptions to ensure this gets dequeued.
+        # Else it can choke the queue.
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        return
     try:
         insert_question(question_id)
     except Exception as exc:
