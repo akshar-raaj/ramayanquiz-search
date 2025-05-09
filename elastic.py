@@ -55,14 +55,25 @@ def insert_document(document, index_name=QUESTION_INDEX):
     if response.status_code == 201:
         return True, ''
     else:
-        return False, response_json['error']
+        return False, response_json['error']['reason']
 
 
-def search_document(index_name, term):
+def search_index(index_name, term):
     url = f'{ELASTIC_HOST}/{index_name}/_search'
-    response = requests.get(url)
+    query = {
+        "query": {
+            "match": {
+                "question": term
+            }
+        }
+    }
+    response = requests.get(url, json=query)
     response_json = response.json()
     if response.status_code == 200:
-        return response_json, ''
+        documents = list()
+        hits = response_json['hits']['hits']
+        for hit in hits:
+            documents.append(hit['_source'])
+        return True, documents
     else:
-        return False, response_json['error']
+        return False, response_json['error']['reason']
