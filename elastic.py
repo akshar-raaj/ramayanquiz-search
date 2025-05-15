@@ -5,7 +5,7 @@ Currently we are using the `requests` library. Later we will shift to elasticsea
 import requests
 import json
 
-from constants import ELASTIC_HOST, QUESTION_INDEX
+from constants import ELASTIC_HOST, ELASTIC_AUTH, QUESTION_INDEX
 
 
 elastic_connection = None
@@ -24,7 +24,7 @@ def create_index(index_name):
     Multiple calls to create_index will not do anything extra. It would ensure that the index exists.
     """
     url = f'{ELASTIC_HOST}/{index_name}'
-    response = requests.put(url)
+    response = requests.put(url, auth=ELASTIC_AUTH, verify=False)
     # Idempotency
     if response.status_code == 400:
         response_json = response.json()
@@ -40,7 +40,7 @@ def create_index(index_name):
 
 def delete_index(index_name):
     url = f'{ELASTIC_HOST}/{index_name}'
-    response = requests.delete(url)
+    response = requests.delete(url, auth=ELASTIC_AUTH, verify=False)
     if response.ok:
         return True, ''
     else:
@@ -50,7 +50,7 @@ def delete_index(index_name):
 
 def insert_document(document, index_name=QUESTION_INDEX):
     url = f'{ELASTIC_HOST}/{index_name}/_doc'
-    response = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(document))
+    response = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(document), auth=ELASTIC_AUTH, verify=False)
     response_json = response.json()
     if response.status_code == 201:
         return True, ''
@@ -67,7 +67,7 @@ def search_index(index_name, term):
             }
         }
     }
-    response = requests.get(url, json=query)
+    response = requests.get(url, json=query, auth=ELASTIC_AUTH, verify=False)
     response_json = response.json()
     if response.status_code == 200:
         documents = list()
